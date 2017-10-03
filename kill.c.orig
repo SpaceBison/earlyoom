@@ -20,7 +20,7 @@ struct procinfo {
 	int oom_score_adj;
 	unsigned long vm_rss;
 	int exited;
-	char* cmdline;
+    char* cmdline;
 };
 
 static int isnumeric(char* str)
@@ -94,10 +94,10 @@ static struct procinfo get_process_stats(int pid)
 static int is_whitelisted(int pid, regex_t **cmd_whitelist, int cmd_whitelist_count);
 
 /*
- * Find the process with the largest oom_score and kill it.
- * See trigger_kernel_oom() for the reason why this is done in userspace.
- */
-static void userspace_kill(DIR *procdir, int sig, int ignore_oom_score_adj)
+* Find the process with the largest oom_score and kill it.
+* See trigger_kernel_oom() for the reason why this is done in userspace.
+*/
+static void userspace_kill(DIR *procdir, int sig, int ignore_oom_score_adj, regex_t **cmd_whitelist, int cmd_whitelist_count)
 {
 	struct dirent * d;
 	char buf[256];
@@ -144,21 +144,34 @@ static void userspace_kill(DIR *procdir, int sig, int ignore_oom_score_adj)
 			badness -= p.oom_score_adj;
 
 		if(enable_debug)
+<<<<<<< HEAD
+			printf("pid %5d: badness %3d vm_rss %6lu\n", pid, badness, p.vm_rss);
+
+		if(badness > victim_badness)
+		{
+			victim_pid = pid;
+			victim_badness = badness;
+			victim_vm_rss = p.vm_rss;
+			if(enable_debug)
+				printf("    ^ new victim (higher badness)\n");
+=======
 			printf("pid %5d: badness %3d vm_rss %6lu %s\n", pid, badness, p.vm_rss, p.cmdline);
 
 		if(badness > victim_badness) {
             if (!is_whitelisted(pid, cmd_whitelist, cmd_whitelist_count)) {
                 victim_pid = pid;
                 victim_badness = badness;
-			victim_vm_rss = p.vm_rss;
                 if (enable_debug)
                     printf("    ^ new victim (higher badness)\n");
             }
+>>>>>>> add whitelist feature
 		} else if(badness == victim_badness && p.vm_rss > victim_vm_rss) {
-			victim_pid = pid;
-			victim_vm_rss = p.vm_rss;
-			if(enable_debug)
-				printf("    ^ new victim (higher vm_rss)\n");
+            if (!is_whitelisted(pid, cmd_whitelist, cmd_whitelist_count)) {
+                victim_pid = pid;
+                victim_vm_rss = p.vm_rss;
+                if (enable_debug)
+                    printf("    ^ new victim (higher vm_rss)\n");
+            }
 		}
 	}
 

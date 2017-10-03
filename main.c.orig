@@ -8,8 +8,11 @@
 #include <dirent.h>
 #include <stdlib.h>
 #include <sys/mman.h>
+<<<<<<< HEAD
 #include <sys/resource.h>
+=======
 #include <regex.h>
+>>>>>>> add whitelist feature
 
 #include "meminfo.h"
 #include "kill.h"
@@ -49,11 +52,15 @@ int main(int argc, char *argv[])
 		exit(5);
 	}
 
-	int cmd_whitelist_size = 0;
-	regex_t **cmd_whitelist = NULL, *tmp_regex;
+    int cmd_whitelist_size = 0;
+    regex_t **cmd_whitelist = NULL, *tmp_regex;
 
 	int c;
+<<<<<<< HEAD
 	while((c = getopt (argc, argv, "m:s:M:S:kidvr:ph")) != -1)
+=======
+	while((c = getopt (argc, argv, "m:s:w:kidvh")) != -1)
+>>>>>>> add whitelist feature
 	{
 		switch(c)
 		{
@@ -71,6 +78,7 @@ int main(int argc, char *argv[])
 					exit(16);
 				}
 				break;
+<<<<<<< HEAD
 			case 'M':
 				mem_min = strtol(optarg, NULL, 10);
 				if(mem_min <= 0) {
@@ -85,15 +93,17 @@ int main(int argc, char *argv[])
 					exit(16);
 				}
 				break;
-			case 'w':
-				tmp_regex = malloc(sizeof(regex_t));
-				if (regcomp(tmp_regex, optarg, REG_NOSUB | REG_EXTENDED)) {
-					fprintf(stderr, "-m: Invalid whitelist pattern: %s\n", optarg);
-					exit(17);
-				}
-				cmd_whitelist = realloc(cmd_whitelist, ++cmd_whitelist_size * sizeof(regex_t*));
-				cmd_whitelist[cmd_whitelist_size - 1] = tmp_regex;
-				break;
+=======
+            case 'w':
+                tmp_regex = malloc(sizeof(regex_t));
+                if (regcomp(tmp_regex, optarg, REG_NOSUB | REG_EXTENDED)) {
+                    fprintf(stderr, "-m: Invalid whitelist pattern: %s\n", optarg);
+                    exit(17);
+                }
+                cmd_whitelist = realloc(cmd_whitelist, ++cmd_whitelist_size * sizeof(regex_t*));
+                cmd_whitelist[cmd_whitelist_size - 1] = tmp_regex;
+                break;
+>>>>>>> add whitelist feature
 			case 'k':
 				kernel_oom_killer = 1;
 				fprintf(stderr, "Using kernel oom killer\n");
@@ -119,20 +129,20 @@ int main(int argc, char *argv[])
 				break;
 			case 'h':
 				fprintf(stderr,
-						"Usage: earlyoom [OPTION]...\n"
-								"\n"
-								"  -m PERCENT   set available memory minimum to PERCENT of total (default 10 %%)\n"
-								"  -s PERCENT   set free swap minimum to PERCENT of total (default 10 %%)\n"
-								"  -M SIZE      set available memory minimum to SIZE KiB\n"
-								"  -S SIZE      set free swap minimum to SIZE KiB\n"
-								"  -k           use kernel oom killer instead of own user-space implementation\n"
-								"  -i           user-space oom killer should ignore positive oom_score_adj values\n"
-								"  -d           enable debugging messages\n"
-								"  -v           print version information and exit\n"
-								"  -r INTERVAL  memory report interval in seconds (default 1), set to 0 to\n"
-								"               disable completely\n"
-								"  -p           set niceness of earlyoom to -20 and oom_score_adj to -1000\n"
-								"  -h           this help text\n");
+"Usage: earlyoom [OPTION]...\n"
+"\n"
+"  -m PERCENT   set available memory minimum to PERCENT of total (default 10 %%)\n"
+"  -s PERCENT   set free swap minimum to PERCENT of total (default 10 %%)\n"
+"  -M SIZE      set available memory minimum to SIZE KiB\n"
+"  -S SIZE      set free swap minimum to SIZE KiB\n"
+"  -k           use kernel oom killer instead of own user-space implementation\n"
+"  -i           user-space oom killer should ignore positive oom_score_adj values\n"
+"  -d           enable debugging messages\n"
+"  -v           print version information and exit\n"
+"  -r INTERVAL  memory report interval in seconds (default 1), set to 0 to\n"
+"               disable completely\n"
+"  -p           set niceness of earlyoom to -20 and oom_score_adj to -1000\n"
+"  -h           this help text\n");
 				exit(1);
 			case '?':
 				exit(13);
@@ -175,14 +185,14 @@ int main(int argc, char *argv[])
 	}
 
 	fprintf(stderr, "mem total: %lu MiB, min: %lu MiB (%d %%)\n",
-			m.MemTotal / 1024, mem_min / 1024, mem_min_percent);
+		m.MemTotal / 1024, mem_min / 1024, mem_min_percent);
 	fprintf(stderr, "swap total: %lu MiB, min: %lu MiB (%d %%)\n",
-			m.SwapTotal / 1024, swap_min / 1024, swap_min_percent);
+		m.SwapTotal / 1024, swap_min / 1024, swap_min_percent);
 
 	/* Dry-run oom kill to make sure stack grows to maximum size before
 	 * calling mlockall()
 	 */
-	handle_oom(procdir, 0, kernel_oom_killer, ignore_oom_score_adj, NULL, 0);
+    handle_oom(procdir, 0, kernel_oom_killer, ignore_oom_score_adj, NULL, 0);
 
 	if(mlockall(MCL_CURRENT|MCL_FUTURE) !=0 )
 		perror("Could not lock memory - continuing anyway");
@@ -208,8 +218,8 @@ int main(int argc, char *argv[])
 				swap_free_percent = m.SwapFree * 100 / m.SwapTotal;
 
 			printf("mem avail: %lu MiB (%ld %%), swap free: %lu MiB (%d %%)\n",
-				   m.MemAvailable / 1024, m.MemAvailable * 100 / m.MemTotal,
-				   m.SwapFree / 1024, swap_free_percent);
+				m.MemAvailable / 1024, m.MemAvailable * 100 / m.MemTotal,
+				m.SwapFree / 1024, swap_free_percent);
 			c=0;
 		}
 		c++;
@@ -217,13 +227,14 @@ int main(int argc, char *argv[])
 		if(m.MemAvailable <= mem_min && m.SwapFree <= swap_min)
 		{
 			fprintf(stderr, "Out of memory! avail: %lu MiB < min: %lu MiB\n",
-					m.MemAvailable / 1024, mem_min / 1024);
-			handle_oom(procdir, 9, kernel_oom_killer, ignore_oom_score_adj, cmd_whitelist, cmd_whitelist_size);
+				m.MemAvailable / 1024, mem_min / 1024);
+            handle_oom(procdir, 9, kernel_oom_killer, ignore_oom_score_adj, cmd_whitelist, cmd_whitelist_size);
 			oom_cnt++;
 		}
 
 		usleep(100000); // 100ms
 	}
+<<<<<<< HEAD
 
 	return 0;
 }
@@ -242,5 +253,9 @@ int set_oom_score_adj (int oom_score_adj)
 	fprintf(f, "%d", oom_score_adj);
 	fclose(f);
 
+=======
+#pragma clang diagnostic pop
+	
+>>>>>>> add whitelist feature
 	return 0;
 }
